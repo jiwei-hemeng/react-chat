@@ -10,11 +10,11 @@ const router = require("./router");
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users.js");
 
 app.use(router);
-app.use(cors())
+app.use(cors());
 io.on("connection", (socket) => {
   socket.on("join", ({ name, room }, callback) => {
-    const user = addUser({ id: socket.id, name, room });        
-    if (!user) return callback(error);    
+    const user = addUser({ id: socket.id, name, room });
+    if (!user) return callback(error);
     socket.emit("message", {
       user: "admin",
       text: `${user.name} welcome to the room ${user.room}`,
@@ -25,25 +25,35 @@ io.on("connection", (socket) => {
 
     socket.join(user.room);
 
-    io.to(user.room).emit("roomData", {room: user.room, users: getUsersInRoom(user.room)})
+    io.to(user.room).emit("roomData", {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
   });
 
-  socket.on("sendMessage", (message, callback) => {    
-    const user = getUser(socket.id);    
+  socket.on("sendMessage", (message, callback) => {
+    const user = getUser(socket.id);
     io.to(user.room).emit("message", { user: user.name, text: message });
-    io.to(user.room).emit("roomData", {room : user.room, users: getUsersInRoom(user.room)})
+    io.to(user.room).emit("roomData", {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
     callback();
   });
 
   socket.on("disconnect", () => {
-
     const user = removeUser(socket.id);
 
-    if (user){
-        io.to(user.room).emit("message", {user: "admin", text: `${user.name} has left.` })
-        io.to(user.room).emit('roomData', {room : user.room, users: getUsersInRoom(user.room)})
-      }
-
+    if (user) {
+      io.to(user.room).emit("message", {
+        user: "admin",
+        text: `${user.name} has left.`,
+      });
+      io.to(user.room).emit("roomData", {
+        room: user.room,
+        users: getUsersInRoom(user.room),
+      });
+    }
   });
 });
 
