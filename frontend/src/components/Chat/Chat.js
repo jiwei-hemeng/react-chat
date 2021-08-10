@@ -6,7 +6,6 @@ import InfoBar from "../InfoBar/InfoBar";
 import Input from "../Input/Input";
 import Messages from "../Messages/Messages";
 import OnlineContainer from "../OnlineContainer/OnlineContainer";
-// import Noti from "./messenger.mp3";
 let socket;
 const Chat = ({ location }) => {
   const [name, setName] = useState("");
@@ -14,11 +13,9 @@ const Chat = ({ location }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState("");
-  const ENDPOINT = "http://localhost:5000";
-  // const audio = new Audio(Noti);
   useEffect(() => {
     const { name, room } = queryString.parse(location.search);
-    socket = io(ENDPOINT);
+    socket = io("http://192.168.1.2:5000");
     setName(name);
     setRoom(room);
     socket.emit("join", { name, room }, (e) => {
@@ -28,17 +25,16 @@ const Chat = ({ location }) => {
       socket.emit("disconnect");
       socket.off();
     };
-  }, [ENDPOINT, location.search]);
+  }, [location.search]);
 
   useEffect(() => {
     socket.on("message", (message) => {
       setMessages([...messages, message]);
-      // audio.play();
     });
     socket.on("roomData", ({ users }) => {
       setUsers(users);
     });
-  }, [users, message, messages]);
+  }, [messages]);
 
   const sendMessage = (e) => {
     e.preventDefault();
